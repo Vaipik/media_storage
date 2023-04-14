@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter
 
 from ..requests.event import EventPost
+from src.application.google_drive import service
 
 
 event_router = APIRouter(
