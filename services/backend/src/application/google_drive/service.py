@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build, Resource
 from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
 from googleapiclient.http import MediaFileUpload
@@ -29,7 +29,7 @@ class GoogleDrive:
         self._api_name = "drive"
         self._service = self._get_service()
 
-    def _get_service(self):
+    def _get_service(self) -> Resource:
         """Get a service that communicates to a Google API.
         Returns:
             A service that is connected to the specified API.
@@ -37,14 +37,13 @@ class GoogleDrive:
         credentials = service_account.Credentials.from_service_account_file(self.key_file_location)  # type: ignore
         scoped_credentials = credentials.with_scopes(self.scopes)
         service = build(self._api_name, self.api_version, credentials=scoped_credentials)
-
         return service
 
     def get_files(self) -> list | None:
         results = self._service.files().list(
             pageSize=10).execute()
-        items = results.get('files')
 
+        items = results.get('files')
         if not items:
             print('No files found.')
             return
@@ -55,7 +54,8 @@ class GoogleDrive:
 
     def upload_file(self, filename: Path):
         __file = self._service.files()
-        file_metadata = {"name": filename.name}
+        folder_id = "1jK7x4EGs9NkeKTMk8fthujwtnjlMa8QC"
+        file_metadata = {"name": filename.name, "parents": [folder_id]}
 
         media = MediaFileUpload(
             filename,
