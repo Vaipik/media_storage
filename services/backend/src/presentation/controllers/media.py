@@ -3,11 +3,12 @@ from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, Depends
 
+from src.config import load_config
 from src.application.google_drive.service import GoogleDrive, BASE_DIR
 from src.presentation.responses.media import FileResponse
 
-cloud_storage = GoogleDrive()
-
+settings = load_config()
+cloud_storage = GoogleDrive(settings=settings.gdrive)
 file_router = APIRouter(
     prefix="/files",
     tags=["Event files"]

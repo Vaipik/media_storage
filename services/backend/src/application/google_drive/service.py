@@ -5,6 +5,7 @@ from googleapiclient.errors import HttpError
 from google.oauth2 import service_account
 from googleapiclient.http import MediaFileUpload
 
+from src.config import GDrive
 BASE_DIR = Path(__file__).parent
 
 
@@ -12,20 +13,17 @@ class GoogleDrive:
 
     def __init__(
             self,
-            scopes: list[str] = [
-                "https://www.googleapis.com/auth/drive"
-            ],
-            key_file_location: Path = BASE_DIR / "credentials_service.json",
-            api_version: str = "v3"
+            *,
+            settings: GDrive,
+            api_version: str = "v3",
     ):
         """
         :param scopes: A list auth scopes to authorize for the application.
         :param key_file_location: The path to a valid service account JSON key file.
         :param api_version: he api version to connect to.
         """
-        self.scopes = scopes
-        self.key_file_location = key_file_location
         self.api_version = api_version
+        self.settings = settings
         self._api_name = "drive"
         self._service = self._get_service()
 
@@ -34,8 +32,9 @@ class GoogleDrive:
         Returns:
             A service that is connected to the specified API.
         """
-        credentials = service_account.Credentials.from_service_account_file(self.key_file_location)  # type: ignore
-        scoped_credentials = credentials.with_scopes(self.scopes)
+        # credentials = service_account.Credentials.from_service_account_file(self.key_file_location)  # type: ignore
+        credentials = service_account.Credentials.from_service_account_info(self.settings.credentials)
+        scoped_credentials = credentials.with_scopes(self.settings.scopes)
         service = build(self._api_name, self.api_version, credentials=scoped_credentials)
         return service
 
@@ -54,8 +53,10 @@ class GoogleDrive:
 
     def upload_file(self, filename: Path):
         __file = self._service.files()
-        folder_id = "1jK7x4EGs9NkeKTMk8fthujwtnjlMa8QC"
-        file_metadata = {"name": filename.name, "parents": [folder_id]}
+        file_metadata = {
+            "name": filename.name,
+            "parents": [self.settings.folder],  # Google Drive folder id
+        }
 
         media = MediaFileUpload(
             filename,
