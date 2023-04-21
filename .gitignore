@@ -11,7 +11,7 @@ dist/
 .env
 /venv
 /.venv
-
+*.json
 # IDE's
 .idea
 .vscode
